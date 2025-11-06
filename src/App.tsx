@@ -24,10 +24,7 @@ export default function App() {
 
       {/* ✅ Footer commun à toutes les pages */}
       <Footer />
-   <div className="bg-white dark:bg-slate-900 text-black dark:text-white p-4">
-  Mode test
-</div>
-
+   
     </div>
     
   );

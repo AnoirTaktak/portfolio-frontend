@@ -12,12 +12,28 @@ export default function Navbar() {
   const navItems = [
     { label: "À propos", href: "#about" },
     { label: "Expériences", href: "#experience" },
-    { label: "Formations", href: "#education" },
+    { label: "Formations", href: "#formations" }, // <-- s'assure que l'id de la section est "formations"
     { label: "Projets", href: "#projects" },
     { label: "Contact", href: "#contact" },
   ];
 
   const isDark = theme === "dark";
+
+  const handleNav = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const id = href.replace(/^#/, "");
+    const el = document.getElementById(id);
+    if (!el) {
+      // fallback: update hash
+      history.replaceState(null, "", href);
+      return;
+    }
+    const headerOffset = document.querySelector("nav")?.clientHeight || 0;
+    const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+    const offsetPosition = elementPosition - headerOffset - 8;
+    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    history.replaceState(null, "", `#${id}`);
+  };
 
   return (
     <motion.nav
@@ -31,10 +47,23 @@ export default function Navbar() {
       }}
     >
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-3">
-        {/* ✅ Logo animé au survol */}
+        {/* Logo cliquable -> scroll to top / hero */}
         <motion.h1
           whileHover={{ scale: 1.1, color: "#3b82f6" }}
           transition={{ type: "spring", stiffness: 300 }}
+          onClick={() => {
+            const el = document.getElementById("hero");
+            if (el) {
+              const headerOffset = document.querySelector("nav")?.clientHeight || 0;
+              const elementPosition = el.getBoundingClientRect().top + window.scrollY;
+              const offsetPosition = elementPosition - headerOffset - 8;
+              window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+              history.replaceState(null, "", "#hero");
+            } else {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              history.replaceState(null, "", "#");
+            }
+          }}
           style={{
             color: isDark ? "#60a5fa" : "#2563eb",
           }}
@@ -54,6 +83,7 @@ export default function Navbar() {
               >
                 <a
                   href={item.href}
+                  onClick={(e) => handleNav(e, item.href)}
                   style={{
                     color: isDark ? "#e2e8f0" : "#1e293b",
                   }}
@@ -112,11 +142,14 @@ export default function Navbar() {
             <a
               key={i}
               href={item.href}
+              onClick={(e) => {
+                handleNav(e, item.href);
+                setMenuOpen(false);
+              }}
               style={{
                 color: isDark ? "#e2e8f0" : "#1e293b",
               }}
               className="block hover:text-blue-500 transition-colors"
-              onClick={() => setMenuOpen(false)}
             >
               {item.label}
             </a>
