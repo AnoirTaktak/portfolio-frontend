@@ -1,11 +1,42 @@
+// src/components/About.tsx
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Facebook, Github, Linkedin } from "lucide-react";
 import FadeInSection from "./FadeInSection";
 import { useTheme } from "./ThemeContext";
+import { AboutData, LinkData } from "../types";
+import { getAbout, getLinks } from "../api/api";
+import * as LucideIcons from "lucide-react";
 
 export default function About() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+
+  const [about, setAbout] = useState<AboutData | null>(null);
+  const [links, setLinks] = useState<LinkData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [aboutRes, linksRes] = await Promise.all([getAbout(), getLinks()]);
+        setAbout(aboutRes);
+        setLinks(linksRes);
+      } catch (err) {
+        console.error(err);
+        setError("Erreur de chargement de la section À propos");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading)
+    return <p className="text-center mt-20 text-lg">Chargement...</p>;
+
+  if (error)
+    return <p className="text-center mt-20 text-red-500">{error}</p>;
 
   return (
     <FadeInSection>
@@ -21,79 +52,60 @@ export default function About() {
           {/* 🔹 Titre */}
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            style={{
-              color: isDark ? "#60a5fa" : "#2563eb",
-            }}
             className="text-4xl font-bold mb-6"
+            style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
           >
             À propos de moi
           </motion.h2>
 
-          {/* 🔹 Texte de présentation */}
+          {/* 🔹 Description dynamique */}
           <motion.p
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
             className="text-lg leading-relaxed max-w-3xl mx-auto"
             style={{
               color: isDark ? "#cbd5e1" : "#475569",
             }}
           >
-            Je suis un jeune diplômé passionné par le développement full stack
-            <span style={{ color: isDark ? "#60a5fa" : "#2563eb" }}> MERN</span>.
-            J’aime apprendre, expérimenter et construire des applications modernes,
-            performantes et élégantes.
+            {about?.description ||
+              "Passionné par le développement web moderne, je conçois des solutions performantes et élégantes."}
           </motion.p>
 
-          {/* 🔹 Icônes de réseaux sociaux */}
-          <div className="flex justify-center mt-8 gap-8">
-            <motion.a
-              href="https://www.facebook.com/anoir.taktak"
-              target="_blank"
-              whileHover={{ scale: 1.2, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="transition-transform"
-            >
-              <Facebook
-                className="w-8 h-8"
-                style={{
-                  color: isDark ? "#3b82f6" : "#2563eb",
-                }}
-              />
-            </motion.a>
 
-            <motion.a
-              href="https://github.com/anoirtaktak"
-              target="_blank"
-              whileHover={{ scale: 1.2, rotate: -5 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="transition-transform"
-            >
-              <Github
-                className="w-8 h-8"
-                style={{
-                  color: isDark ? "#e2e8f0" : "#1e293b",
-                }}
-              />
-            </motion.a>
+          {/* 🔹 Liens sociaux dynamiques */}
+          <div className="flex justify-center mt-10 gap-8">
+  {(() => {
+    // ✅ Cast propre pour TypeScript
+    const LucideIconSet = LucideIcons as unknown as Record<string, React.ComponentType<any>>;
 
-            <motion.a
-              href="https://linkedin.com/in/anoirtaktak"
-              target="_blank"
-              whileHover={{ scale: 1.2, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="transition-transform"
-            >
-              <Linkedin
-                className="w-8 h-8"
-                style={{
-                  color: isDark ? "#60a5fa" : "#2563eb",
-                }}
-              />
-            </motion.a>
-          </div>
+    return links.map((link) => {
+      const IconComponent = LucideIconSet[link.icon || "Link"] || LucideIconSet.Link;
+
+      return (
+        <motion.a
+          key={link._id}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          whileHover={{ scale: 1.2, rotate: 5 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          className="transition-transform"
+        >
+          <IconComponent
+            className="w-8 h-8"
+            style={{
+              color: isDark ? "#60a5fa" : "#2563eb",
+            }}
+          />
+        </motion.a>
+      );
+    });
+  })()}
+</div>
+
         </div>
       </section>
     </FadeInSection>

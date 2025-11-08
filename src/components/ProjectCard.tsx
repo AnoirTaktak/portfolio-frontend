@@ -1,14 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Project } from "../data/projects";
+import { ProjectData } from "../types"; // ✅ utilise le type global
 import { useTheme } from "./ThemeContext";
 
-export default function ProjectCard({ project }: { project?: Project | null }) {
-  if (!project) {
-    // évite le crash et aide au debug
-    console.warn("ProjectCard: missing project prop", project);
-    return null; // ou return <div className="p-4">Projet introuvable</div>;
-  }
+export default function ProjectCard({ project }: { project?: ProjectData | null }) {
+  if (!project) return null;
 
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -24,6 +20,14 @@ export default function ProjectCard({ project }: { project?: Project | null }) {
         isDark ? "bg-slate-800 text-gray-100" : "bg-white text-slate-800"
       }`}
     >
+      {project.image && (
+        <img
+          src={project.image}
+          alt={project.title}
+          className="w-full h-40 object-cover rounded-md mb-3"
+          loading="lazy"
+        />
+      )}
       <h3 className="text-lg font-semibold mb-2">{project.title}</h3>
       <p className="text-sm text-gray-400 mb-3">{project.description}</p>
       <div className="flex flex-wrap gap-2">
