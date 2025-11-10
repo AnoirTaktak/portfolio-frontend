@@ -3,25 +3,55 @@ import { motion, AnimatePresence } from "framer-motion";
 import FadeInSection from "./FadeInSection";
 import { useTheme } from "./ThemeContext";
 import { getExperiences } from "../api/api";
-import { ExperienceData } from "../types";
+// Assurez-vous que les types sont importés de la source UNIQUE et correcte
+import { ExperienceData, LocalizedText } from "../types"; 
+import { useLanguage } from "../context/LanguageContext";
 
 export default function ExperienceList() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const { language, t } = useLanguage(); 
+
   const [experiences, setExperiences] = useState<ExperienceData[]>([]);
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fonction utilitaire pour extraire le texte multilingue
+  const getText = (value?: string | LocalizedText): string => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    
+    const localizedValue = value as Record<string, string | undefined>;
+    return localizedValue[language] || localizedValue.fr || "";
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getExperiences();
-        setExperiences(data);
+        // 🚨 CORRECTION CRUCIALE : S'assurer que le type est accepté
+        setExperiences(Array.isArray(data) ? (data as ExperienceData[]) : []);
+        setError(null);
       } catch (err) {
         console.error("Erreur de chargement des expériences", err);
+        setError(t("error_loading_experiences"));
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [t]); 
+
+  if (loading)
+    return <p className="text-center mt-20 text-lg">{t("loading")}</p>;
+
+  if (error)
+    return <p className="text-center mt-20 text-red-500">{error}</p>;
+    
+  // Affiche le message "pas d'expérience" si le tableau est vide
+  const hasExperiences = experiences.length > 0;
 
   return (
     <FadeInSection>
@@ -38,30 +68,33 @@ export default function ExperienceList() {
             className="text-4xl font-bold mb-12 text-center"
             style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
           >
-            Expériences
+            {t("experience")}
           </h2>
 
           <div className="mt-8 space-y-8">
-            {experiences.length > 0 ? (
+            {hasExperiences ? (
               experiences.map((exp) => (
                 <motion.div
                   key={exp._id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="relative border-l-4 border-blue-500 pl-4 hover:bg-slate-800/30 rounded transition group cursor-pointer"
+                  className={`relative border-l-4 border-blue-500 pl-4 transition group ${
+                    isDark ? "hover:bg-slate-800/30" : "hover:bg-gray-100/50"
+                  } rounded cursor-pointer`}
                 >
+                  {/* ... Reste inchangé ... */}
                   <div>
                     <h3 className="text-xl font-semibold">
-                      {exp.role} — <span className="font-medium">{exp.company}</span>
+                      {getText(exp.role)} — <span className="font-medium">{exp.company}</span>
                     </h3>
-                    <p className="text-sm text-gray-400">
-                      {exp.start} → {exp.end || "Présent"} • {exp.location}
+                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                      {exp.start} → {exp.end || t("present")} • {exp.location}
                     </p>
 
-                    <ul className="list-disc ml-5 mt-2 text-gray-300">
+                    <ul className={`list-disc ml-5 mt-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
                       {exp.bullets?.map((b, i) => (
-                        <li key={i}>{b}</li>
+                        <li key={i}>{getText(b)}</li>
                       ))}
                     </ul>
 
@@ -70,7 +103,9 @@ export default function ExperienceList() {
                         {exp.tech.map((t) => (
                           <span
                             key={t}
-                            className="text-xs bg-slate-700 text-gray-200 px-2 py-1 rounded"
+                            className={`text-xs px-2 py-1 rounded ${
+                                isDark ? "bg-slate-700 text-gray-200" : "bg-gray-200 text-gray-800"
+                            }`}
                           >
                             {t}
                           </span>
@@ -79,7 +114,6 @@ export default function ExperienceList() {
                     )}
                   </div>
 
-                  {/* ✅ Affichage du lien au survol */}
                   {exp.proofLink && (
                     <motion.div
                       className="absolute top-2 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -89,19 +123,21 @@ export default function ExperienceList() {
                       <span
                         className="text-sm text-blue-400 hover:text-blue-300 underline"
                       >
-                        Voir l’attestation
+                        {t("view_certificate")}
                       </span>
                     </motion.div>
                   )}
                 </motion.div>
               ))
             ) : (
-              <p className="text-gray-500">Aucune expérience pour le moment.</p>
+              <p className={`text-center mt-10 ${isDark ? "text-gray-500" : "text-gray-600"}`}>
+                  {t("no_experience")}
+              </p>
             )}
           </div>
         </div>
 
-        {/* ✅ Overlay plein écran */}
+        {/* ... (Overlay pour l'attestation - Reste inchangé) ... */}
         <AnimatePresence>
           {selectedProof && (
             <motion.div
@@ -114,13 +150,13 @@ export default function ExperienceList() {
               {selectedProof.endsWith(".pdf") ? (
                 <iframe
                   src={selectedProof}
-                  title="Document de preuve"
+                  title={t("proof_document")} 
                   className="w-[90%] h-[80vh] rounded-lg bg-white"
                 />
               ) : (
                 <img
                   src={selectedProof}
-                  alt="Document de preuve"
+                  alt={t("proof_document")} 
                   className="max-h-[80vh] rounded-lg shadow-2xl"
                 />
               )}

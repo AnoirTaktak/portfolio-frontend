@@ -1,20 +1,37 @@
-// src/components/About.tsx
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import FadeInSection from "./FadeInSection";
 import { useTheme } from "./ThemeContext";
-import { AboutData, LinkData } from "../types";
+// 💡 Import de LocalizedText pour le typage
+import { AboutData, LinkData, LocalizedText } from "../types"; 
 import { getAbout, getLinks } from "../api/api";
 import * as LucideIcons from "lucide-react";
+// 💡 Import de useLanguage
+import { useLanguage } from "../context/LanguageContext"; 
 
 export default function About() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  // 🆕 Récupération de la langue et de la fonction de traduction
+  const { language, t } = useLanguage(); 
 
   const [about, setAbout] = useState<AboutData | null>(null);
   const [links, setLinks] = useState<LinkData[]>([]);
   const [loading, setLoading] = useState(true);
+  // 🆕 Utilisation de t() pour le message d'erreur
   const [error, setError] = useState<string | null>(null);
+
+  // 🧩 Fonction utilitaire pour extraire le texte multilingue
+  const getText = (value?: string | LocalizedText): string => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    
+    // Le cast est désormais sûr
+    const localizedValue = value as Record<string, string | undefined>;
+    
+    return localizedValue[language] || localizedValue.fr || "";
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,16 +41,19 @@ export default function About() {
         setLinks(linksRes);
       } catch (err) {
         console.error(err);
-        setError("Erreur de chargement de la section À propos");
+        // 🆕 Utilisation du t() pour le message d'erreur
+        setError(t("error_loading_about"));
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+    // 💡 Déclenché à chaque changement de 'language' pour les erreurs, mais les données ne changent pas sans ça
+    fetchData(); 
+  }, [t]); // Dépendance à t pour mettre à jour le message d'erreur si la langue change
 
   if (loading)
-    return <p className="text-center mt-20 text-lg">Chargement...</p>;
+    // 🆕 Utilisation de t()
+    return <p className="text-center mt-20 text-lg">{t("loading")}</p>;
 
   if (error)
     return <p className="text-center mt-20 text-red-500">{error}</p>;
@@ -57,7 +77,8 @@ export default function About() {
             className="text-4xl font-bold mb-6"
             style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
           >
-            À propos de moi
+            {/* 🆕 Utilisation de t() pour le titre statique de section */}
+            {t("about")} 
           </motion.h2>
 
           {/* 🔹 Description dynamique */}
@@ -70,42 +91,43 @@ export default function About() {
               color: isDark ? "#cbd5e1" : "#475569",
             }}
           >
-            {about?.description ||
-              "Passionné par le développement web moderne, je conçois des solutions performantes et élégantes."}
+            {/* 🆕 Utilisation de getText pour la description multilingue */}
+            {getText(about?.description) ||
+              t("about_fallback_description") 
+            }
           </motion.p>
 
 
           {/* 🔹 Liens sociaux dynamiques */}
           <div className="flex justify-center mt-10 gap-8">
-  {(() => {
-    // ✅ Cast propre pour TypeScript
-    const LucideIconSet = LucideIcons as unknown as Record<string, React.ComponentType<any>>;
+            {(() => {
+              // ✅ Cast propre pour TypeScript
+              const LucideIconSet = LucideIcons as unknown as Record<string, React.ComponentType<any>>;
 
-    return links.map((link) => {
-      const IconComponent = LucideIconSet[link.icon || "Link"] || LucideIconSet.Link;
+              return links.map((link) => {
+                const IconComponent = LucideIconSet[link.icon || "Link"] || LucideIconSet.Link;
 
-      return (
-        <motion.a
-          key={link._id}
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          whileHover={{ scale: 1.2, rotate: 5 }}
-          transition={{ type: "spring", stiffness: 200 }}
-          className="transition-transform"
-        >
-          <IconComponent
-            className="w-8 h-8"
-            style={{
-              color: isDark ? "#60a5fa" : "#2563eb",
-            }}
-          />
-        </motion.a>
-      );
-    });
-  })()}
-</div>
-
+                return (
+                  <motion.a
+                    key={link._id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                    className="transition-transform"
+                  >
+                    <IconComponent
+                      className="w-8 h-8"
+                      style={{
+                        color: isDark ? "#60a5fa" : "#2563eb",
+                      }}
+                    />
+                  </motion.a>
+                );
+              });
+            })()}
+          </div>
         </div>
       </section>
     </FadeInSection>

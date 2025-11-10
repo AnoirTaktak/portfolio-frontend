@@ -2,10 +2,13 @@ import { motion } from "framer-motion";
 import FadeInSection from "./FadeInSection";
 import { Facebook, Github, Linkedin } from "lucide-react";
 import { useTheme } from "./ThemeContext";
+// Assurez-vous d'importer useLanguage et t si vous souhaitez traduire le texte
+// import { useLanguage } from "../context/LanguageContext";
 
 export default function Footer() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  // const { t } = useLanguage();
 
   return (
     <FadeInSection>
@@ -35,6 +38,7 @@ export default function Footer() {
               whileHover={{ scale: 1.2, rotate: 5 }}
               href="https://www.facebook.com/anoir.taktak"
               target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-blue-500 transition"
             >
               <Facebook size={20} />
@@ -43,6 +47,7 @@ export default function Footer() {
               whileHover={{ scale: 1.2, rotate: 5 }}
               href="https://github.com/anoirtaktak"
               target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-gray-300 dark:hover:text-white transition"
             >
               <Github size={20} />
@@ -51,6 +56,7 @@ export default function Footer() {
               whileHover={{ scale: 1.2, rotate: 5 }}
               href="https://linkedin.com/in/anoirtaktak"
               target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-blue-400 transition"
             >
               <Linkedin size={20} />

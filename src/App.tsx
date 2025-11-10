@@ -5,13 +5,14 @@ import ScrollProgress from "./components/ScrollProgress"; // ✅ barre de progre
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import { LanguageProvider } from "./context/LanguageContext";
 
 export default function App() {
   return (
     <div className="bg-slate-900 text-gray-200 min-h-screen relative">
       {/* ✅ Barre de progression de scroll toujours visible */}
       <ScrollProgress />
-
+      <LanguageProvider> 
       {/* ✅ Navbar persistante */}
       <Navbar />
 
@@ -24,7 +25,7 @@ export default function App() {
 
       {/* ✅ Footer commun à toutes les pages */}
       <Footer />
-   
+    </LanguageProvider>
     </div>
     
   );

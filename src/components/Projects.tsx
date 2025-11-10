@@ -4,11 +4,14 @@ import { useTheme } from "./ThemeContext";
 import FadeInSection from "./FadeInSection";
 import ProjectCard from "./ProjectCard";
 import { getProjects } from "../api/api";
-import { ProjectData } from "../types";
+// Assurez-vous que les types sont importés de la source UNIQUE et correcte
+import { ProjectData, LocalizedText } from "../types"; 
+import { useLanguage } from "../context/LanguageContext"; 
 
 export default function Projects() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const { t } = useLanguage();
 
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,21 +21,23 @@ export default function Projects() {
     const fetchProjects = async () => {
       try {
         const data = await getProjects();
-        setProjects(data);
+        // 🚨 CORRECTION CRUCIALE : S'assurer que le type est accepté
+        setProjects(Array.isArray(data) ? (data as ProjectData[]) : []);
+        setError(null); 
       } catch (err) {
-        console.error(err);
-        setError("Erreur lors du chargement des projets");
+        console.error("Erreur de chargement des projets:", err);
+        setError(t("error_loading_projects")); 
       } finally {
         setLoading(false);
       }
     };
     fetchProjects();
-  }, []);
+  }, [t]); 
 
   if (loading)
     return (
       <section className="flex justify-center items-center min-h-screen">
-        Chargement des projets...
+        {t("loading")}
       </section>
     );
 
@@ -47,7 +52,7 @@ export default function Projects() {
     <FadeInSection>
       <section
         id="projects"
-        className="py-20"
+        className="py-20 transition-colors duration-500" 
         style={{
           backgroundColor: isDark ? "#0b1220" : "#f8fafc",
           color: isDark ? "#e2e8f0" : "#1e293b",
@@ -58,7 +63,7 @@ export default function Projects() {
             className="text-3xl font-bold mb-6 text-center"
             style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
           >
-            Projets
+            {t("projects")} 
           </h2>
 
           <div className="grid gap-6 sm:grid-cols-2">
@@ -77,8 +82,8 @@ export default function Projects() {
                 </motion.div>
               ))
             ) : (
-              <p className="text-gray-500 text-center">
-                Aucun projet disponible pour le moment.
+              <p className="text-gray-500 text-center col-span-full">
+                {t("no_projects")}
               </p>
             )}
           </div>

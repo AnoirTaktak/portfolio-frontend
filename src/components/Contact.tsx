@@ -1,18 +1,28 @@
-import { Mail, Phone, MapPin, Copy } from "lucide-react";
+import { Mail, Phone, MapPin, Copy, Facebook, Github, Linkedin } from "lucide-react";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import FadeInSection from "./FadeInSection";
 import { useTheme } from "./ThemeContext";
+import { useLanguage } from "../context/LanguageContext"; // Importation essentielle pour 't()'
 
 export default function Contact() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  // Fonction de traduction
+  const { t } = useLanguage(); 
 
   const [copied, setCopied] = useState(false);
 
+  // Coordonnées réelles basées sur votre CV
+  const emailAddress = "Anoirtaktak@hotmail.fr"; 
+  const phoneNumber = "+216 29 036 555";
+  const address = "Sfax, Tunisie";
+  
   const handleCopy = (text: string) => {
+    // Utiliser l'API du presse-papiers
     navigator.clipboard.writeText(text);
     setCopied(true);
+    // Masquer le message "Copié" après 1,5 seconde
     setTimeout(() => setCopied(false), 1500);
   };
 
@@ -22,6 +32,7 @@ export default function Contact() {
         id="contact"
         className="py-20 flex justify-center items-center transition-colors duration-500"
         style={{
+          // Styles d'arrière-plan basés sur le thème
           backgroundColor: isDark ? "#0f172a" : "#f8fafc",
           color: isDark ? "#e2e8f0" : "#1e293b",
         }}
@@ -32,6 +43,7 @@ export default function Contact() {
           transition={{ duration: 0.6 }}
           className="p-8 rounded-2xl max-w-lg w-full text-center shadow-xl border transition-all duration-500"
           style={{
+            // Styles de la carte de contact (avec effet de flou pour l'esthétique)
             backgroundColor: isDark
               ? "rgba(30, 41, 59, 0.6)"
               : "rgba(255, 255, 255, 0.6)",
@@ -43,7 +55,8 @@ export default function Contact() {
             className="text-3xl font-bold mb-6"
             style={{ color: isDark ? "#60a5fa" : "#2563eb" }}
           >
-            Contact
+            {/* Utilisation de la clé de traduction */}
+            {t("contact_title")} 
           </h2>
 
           <div className="space-y-4 text-base">
@@ -53,11 +66,12 @@ export default function Contact() {
               className="flex justify-center items-center gap-2"
             >
               <Mail className="text-blue-400" />
-              <span>anoir.taktak@example.com</span>
+              <span>{emailAddress}</span>
               <Copy
                 className="cursor-pointer hover:text-blue-400 transition"
                 size={18}
-                onClick={() => handleCopy("anoir.taktak@example.com")}
+                onClick={() => handleCopy(emailAddress)}
+                aria-label={t("copy_email")}
               />
               {copied && (
                 <motion.span
@@ -66,19 +80,20 @@ export default function Contact() {
                   exit={{ opacity: 0 }}
                   className="text-green-400 text-sm ml-2"
                 >
-                  Copié ✅
+                  {t("copied_success")}
                 </motion.span>
               )}
             </motion.div>
 
-            {/* Téléphone */}
-            <motion.div
+            {/* Téléphone (lien cliquable pour appeler) */}
+            <motion.a
               whileHover={{ scale: 1.05 }}
+              href={`tel:${phoneNumber.replace(/\s/g, '')}`}
               className="flex justify-center items-center gap-2"
             >
               <Phone className="text-blue-400" />
-              <span>+216 55 123 456</span>
-            </motion.div>
+              <span>{phoneNumber}</span>
+            </motion.a>
 
             {/* Adresse */}
             <motion.div
@@ -86,22 +101,20 @@ export default function Contact() {
               className="flex justify-center items-center gap-2"
             >
               <MapPin className="text-blue-400" />
-              <span>Tunis, Tunisie</span>
+              <span>{address}</span>
             </motion.div>
           </div>
 
-          {/* Liens sociaux */}
+          {/* Liens sociaux (Uniformisés avec Lucide Icons) */}
           <div className="flex justify-center mt-8 space-x-6">
             <motion.a
               whileHover={{ scale: 1.2, rotate: 5 }}
               href="https://www.facebook.com/anoir.taktak"
               target="_blank"
               rel="noopener noreferrer"
+              className="transition text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
             >
-              <i
-                className="fa-brands fa-facebook text-3xl transition"
-                style={{ color: isDark ? "#3b82f6" : "#1877F2" }}
-              ></i>
+              <Facebook size={30} />
             </motion.a>
 
             <motion.a
@@ -109,11 +122,9 @@ export default function Contact() {
               href="https://github.com/anoirtaktak"
               target="_blank"
               rel="noopener noreferrer"
+              className="transition text-gray-500 hover:text-gray-900 dark:hover:text-white"
             >
-              <i
-                className="fa-brands fa-github text-3xl transition"
-                style={{ color: isDark ? "#f8fafc" : "#0f172a" }}
-              ></i>
+              <Github size={30} />
             </motion.a>
 
             <motion.a
@@ -121,11 +132,9 @@ export default function Contact() {
               href="https://www.linkedin.com/in/anoirtaktak"
               target="_blank"
               rel="noopener noreferrer"
+              className="transition text-gray-500 hover:text-blue-700 dark:hover:text-blue-500"
             >
-              <i
-                className="fa-brands fa-linkedin text-3xl transition"
-                style={{ color: isDark ? "#60a5fa" : "#0A66C2" }}
-              ></i>
+              <Linkedin size={30} />
             </motion.a>
           </div>
         </motion.div>

@@ -3,16 +3,30 @@ import FadeInSection from "./FadeInSection";
 import { useTheme } from "./ThemeContext";
 import { useEffect, useState } from "react";
 import api from "../api/api";
-import { HeroData, AboutData } from "../types";
+// 💡 Import de LocalizedText pour une typage précis dans getText
+import { HeroData, AboutData, LocalizedText } from "../types"; 
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Hero() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const { language, t } = useLanguage();
 
   const [hero, setHero] = useState<HeroData | null>(null);
   const [about, setAbout] = useState<AboutData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 🧩 Fonction utilitaire corrigée — accepte string ou LocalizedText
+  const getText = (value?: string | LocalizedText): string => {
+    if (!value) return "";
+    if (typeof value === "string") return value; // supporte ancien format
+    
+    // Le cast est désormais sûr après la correction de LocalizedText dans src/types/index.ts
+    const localizedValue = value as Record<string, string | undefined>; 
+    
+    return localizedValue[language] || localizedValue.fr || "";
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,18 +39,18 @@ export default function Hero() {
         setAbout(Array.isArray(aboutRes.data) ? aboutRes.data[0] : aboutRes.data);
       } catch (err: any) {
         console.error(err);
-        setError("Erreur de chargement des données du Hero");
+        setError(t("error_loading"));
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [language, t]);
 
   if (loading) {
     return (
       <section className="flex justify-center items-center min-h-screen bg-slate-900 text-white">
-        Chargement...
+        {t("loading")}
       </section>
     );
   }
@@ -59,6 +73,7 @@ export default function Hero() {
             : "bg-gradient-to-b from-white via-gray-100 to-white text-gray-800"
         }`}
       >
+        {/* halo derrière */}
         <div
           aria-hidden="true"
           className={`absolute -z-10 w-[420px] h-[420px] rounded-full blur-3xl opacity-30 ${
@@ -68,7 +83,7 @@ export default function Hero() {
         />
 
         <div className="w-full max-w-6xl mx-auto flex flex-col-reverse md:flex-row items-center gap-8 py-12">
-          {/* Texte */}
+          {/* Texte principal */}
           <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
@@ -84,7 +99,7 @@ export default function Hero() {
                   : "from-blue-600 via-cyan-500 to-purple-500"
               }`}
             >
-              {hero?.title || "Anoir Taktak"}
+              {getText(hero?.title) || "Anoir Taktak"}
             </motion.h1>
 
             <motion.h2
@@ -95,7 +110,7 @@ export default function Hero() {
                 isDark ? "text-slate-300" : "text-gray-600"
               }`}
             >
-              {hero?.subtitle || "Développeur Full Stack MERN"}
+              {getText(hero?.subtitle) || t("fullstack_developer")}
             </motion.h2>
 
             <motion.p
@@ -106,24 +121,27 @@ export default function Hero() {
                 isDark ? "text-slate-400" : "text-gray-500"
               }`}
             >
-              {hero?.description ||
-                "Je conçois des solutions modernes et performantes combinant React, Node, MongoDB et Tailwind. Passionné par l’innovation et le design soigné."}
+              {getText(hero?.description) || t("hero_description")}
             </motion.p>
 
+            {/* Bouton CV */}
             <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
-  {hero?.cvLink && (
-    <a
-      href={hero.cvLink}
-      className="px-6 py-2 border border-slate-400 hover:bg-slate-700 text-slate-200 rounded-md transition transform hover:scale-105"
-      target="_blank"
-      rel="noreferrer"
-      download
-    >
-      Télécharger CV
-    </a>
-  )}
-</div>
-
+              {hero?.cvLink && (
+                <a
+                  href={hero.cvLink}
+                  className={`px-6 py-2 border rounded-md transition transform hover:scale-105 ${
+                    isDark
+                      ? "border-slate-400 text-slate-200 hover:bg-slate-700"
+                      : "border-gray-500 text-gray-700 hover:bg-gray-200"
+                  }`}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                >
+                  {t("download_cv")}
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Image dynamique (depuis About) */}
@@ -137,7 +155,9 @@ export default function Hero() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.9, duration: 0.8 }}
               whileHover={{ scale: 1.03 }}
-              className="w-40 h-40 md:w-56 md:h-56 lg:w-72 lg:h-72 rounded-full object-cover shadow-2xl border-4"
+              className={`w-40 h-40 md:w-56 md:h-56 lg:w-72 lg:h-72 rounded-full object-cover shadow-2xl border-4 ${
+                isDark ? "border-slate-700" : "border-white"
+              }`}
             />
           </div>
         </div>
